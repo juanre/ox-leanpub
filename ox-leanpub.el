@@ -20,7 +20,7 @@
 ;;; Define Back-End
 
 (org-export-define-derived-backend 'leanpub 'md
-  :export-block '("leanpub" "LEANPUB")
+;;  :export-block '("leanpub" "LEANPUB")
   :menu-entry
   '(?L "Export to Leanpub Markdown"
        ((?L "To temporary buffer"
