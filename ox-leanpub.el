@@ -166,25 +166,26 @@ definitions at the end."
   "Transcode SRC-BLOCK element into Markdown format.
 CONTENTS is nil.  INFO is a plist used as a communication
 channel."
-  (let ((lang (org-element-property :language src-block)))
-    (format "{lang=\"%s\"}\n~~~~~~~~\n%s~~~~~~~~"
+  (let ((lang (org-element-property :language src-block))
+        (linenos (org-element-property :number-lines src-block)))
+    (format "{lang=\"%s\"%s}\n~~~~~~~~\n%s~~~~~~~~"
             lang
+            (if linenos ",linenos=on" "")
             (org-remove-indentation
              (org-element-property :value src-block)))))
 
-;;; A> {linenos=off}
-;;; A> ~~~~~~~~
-;;; A> 123.0
-;;; A> ~~~~~~~~
+;;; > ~~~~~~~~
+;;; > 123.0
+;;; > ~~~~~~~~
 (defun org-leanpub-fixed-width-block (src-block contents info)
   "Transcode FIXED-WIDTH-BLOCK element into Markdown format.
 CONTENTS is nil.  INFO is a plist used as a communication
 channel."
-  (replace-regexp-in-string
-   "^" "A> "
-   (format "{linenos=off}\n~~~~~~~~\n%s~~~~~~~~"
-           (org-remove-indentation
-            (org-element-property :value src-block)))))
+  (let ((linenos (org-element-property :number-lines src-block)))
+    (format "%s~~~~~~~~\n%s~~~~~~~~"
+            (if linenos "{linenos=on}\n" "")
+            (org-remove-indentation
+             (org-element-property :value src-block)))))
 
 ;;; Export special blocks, mapping them to corresponding block types according to the LeanPub documentation at https://leanpub.com/help/manual#leanpub-auto-blocks-of-text.
 ;;; The supported block types and their conversions are listed in lp-block-mappings.
