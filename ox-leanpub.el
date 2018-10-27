@@ -11,11 +11,23 @@
 ;;; the output does not display line numbers.  Html blocks are
 ;;; ignored.  Links with IDs work.  Tables are exported as they are in
 ;;; orgmode, which is pretty much what Leanpub's markdown accepts.
+;;; The #+NAME and #+CAPTION attributes of an object are converted to
+;;; the LeanPub "id" and "title" attributes. Other attributes
+;;; specified in an #+ATTR_LEANPUB line are included as-is. For example:
+;;;
+;;; #+NAME: some-id
+;;; #+CAPTION: Some name
+;;; #+ATTR_LEANPUB: :width wide
+;;;
+;;; Get converted to the following line, included before the corresponding element:
+;;;
+;;; {id="some-id", title="Some name", width="wide"}
 
 ;;; Code:
 
 (eval-when-compile (require 'cl))
 (require 'ox-md)
+(require 'ob-core)
 
 ;;; Define Back-End
 
@@ -31,7 +43,7 @@
 	      (if a (org-leanpub-export-to-markdown t s v)
 		(org-open-file (org-leanpub-export-to-markdown nil s v)))))))
   :translate-alist '((fixed-width . org-leanpub-fixed-width-block)
-                     (example-block . org-leanpub-fixed-width-block)
+                     (example-block . org-leanpub-example-block)
                      (special-block . org-leanpub-special-block)
                      (src-block . org-leanpub-src-block)
                      (plain-text . org-leanpub-plain-text)
@@ -40,9 +52,48 @@
                      (headline . org-leanpub-headline)
                      (link . org-leanpub-link)
                      (latex-fragment . org-leanpub-latex-fragment)
+                     (line-break . org-leanpub-line-break)
                      (table . org-leanpub-table)
                      ;; Will not work with leanpub:
                      (export-block . org-leanpub-ignore)))
+
+;;; Utility functions
+
+;; Collect #+NAME, #+CAPTION, and any attributes specified as :key
+;; value in the #+ATTR_LEANPUB line, and put them all together in a
+;; Leanpub-style attribute line of the form {key=value,...}. If an
+;; attribute is present in both places (e.g. if both #+CAPTION and
+;; :title are specified), then the values from #+ATTR_LEANPUB take
+;; precedence.
+(defun org-leanpub-attribute-line (elem info &optional other-attrs nonewline)
+  (let* ((init (list (cons :id (or (org-element-property :name elem)
+                                   (org-element-property :ID elem)
+                                   (org-element-property :CUSTOM_ID elem)))
+                     (cons :title (org-export-data (org-element-property :caption elem) info))))
+         (lpattr-str (car (org-element-property :attr_leanpub elem)))
+         (lpattr (append (org-babel-parse-header-arguments lpattr-str) other-attrs init))
+         (oldstyle (string-prefix-p "{" lpattr-str))
+         (printed '())
+         (lpattr-str-new (mapconcat 'identity
+                                    (remove-if 'null
+                                               (mapcar (lambda (elem)
+                                                         (let* ((keysym (car elem))
+                                                                (keystr (apply #'string (cdr (string-to-list (symbol-name keysym)))))
+                                                                (val (cdr elem)))
+                                                           (when (and (> (length val) 0) (not (plist-member printed keysym)))
+                                                             (setq printed (plist-put printed keysym t))
+                                                             (format "%s=\"%s\"" keystr val))))
+                                                       lpattr)) ", "))
+         (output (if oldstyle
+                     (format "%s" lpattr-str)
+                   (when (> (length lpattr-str-new) 0)
+                     (format "{%s}"
+                             lpattr-str-new))))
+         )
+    (when (> (length output) 0)
+      (concat
+       output
+       (unless nonewline "\n")))))
 
 (defun org-leanpub-table (table contents info)
   "Transcode a table object from Org to Markdown.
@@ -55,18 +106,21 @@ Add an #+attr_leanpub: line right before the table with the formatting info that
 | second  | line       |
 | Third   | line       |
 "
-  (replace-regexp-in-string "^\\#\\+attr_leanpub:\s*" ""
-                            (buffer-substring (org-element-property :begin table)
-                                              (org-element-property :end table))))
+  (concat
+   (org-leanpub-attribute-line table info)
+   (buffer-substring (org-element-property :contents-begin table)
+                                               (org-element-property :contents-end table))))
+
 
 (defun org-leanpub-latex-fragment (latex-fragment contents info)
   "Transcode a LATEX-FRAGMENT object from Org to Markdown.
 CONTENTS is nil.  INFO is a plist holding contextual information."
-  (format "{$$}%s{/$$}"
-          ;; Removes the \[, \] and $ that mark latex fragments
-          (replace-regexp-in-string
-           "\\\\\\[\\|\\\\\\]\\|\\$" ""
-           (org-element-property :value latex-fragment))))
+  (concat
+   (format "{$$}%s{/$$}"
+           ;; Removes the \[, \] and $ that mark latex fragments
+           (replace-regexp-in-string
+            "\\\\\\[\\|\\\\\\]\\|\\$" ""
+            (org-element-property :value latex-fragment)))))
 
 (defun org-md-headline-without-anchor (headline contents info)
   "Transcode HEADLINE element into Markdown format.
@@ -111,10 +165,7 @@ org-md-headline but without inserting the <a> anchors."
 
 ;;; Adding the id so that crosslinks work.
 (defun org-leanpub-headline (headline contents info)
-  (concat (let ((id (or (org-element-property :ID headline) (org-element-property :CUSTOM_ID headline))))
-            (if id
-                (format "{#L%s}" id)
-              ""))
+  (concat (org-leanpub-attribute-line headline info nil t)
           (org-md-headline-without-anchor headline contents info)))
 
 (defun org-leanpub-inner-template (contents info)
@@ -166,13 +217,24 @@ definitions at the end."
   "Transcode SRC-BLOCK element into Markdown format.
 CONTENTS is nil.  INFO is a plist used as a communication
 channel."
-  (let ((lang (org-element-property :language src-block))
-        (linenos (org-element-property :number-lines src-block)))
-    (format "{lang=\"%s\"%s}\n~~~~~~~~\n%s~~~~~~~~"
-            lang
-            (if linenos ",linenos=on" "")
-            (org-remove-indentation
-             (org-element-property :value src-block)))))
+  (let ((attrs (list (cons :lang (org-element-property :language src-block))
+                     (cons :linenos (when (org-element-property :number-lines src-block) "on"))))
+        (block-value (org-element-property :value src-block)))
+    (concat
+     (org-leanpub-attribute-line src-block info attrs)
+     (format "~~~~~~~~\n%s%s~~~~~~~~"
+             (org-remove-indentation block-value)
+             ;; Insert a newline if the block doesn't end with one
+             (if (string-suffix-p "\n" block-value) "" "\n")))))
+
+;;; > ~~~~~~~~
+;;; > 123.0
+;;; > ~~~~~~~~
+(defun org-leanpub-example-block (src-block contents info)
+  "Transcode FIXED-WIDTH-BLOCK element into Markdown format.
+CONTENTS is nil.  INFO is a plist used as a communication
+channel."
+  (org-leanpub-src-block src-block contents info))
 
 ;;; > ~~~~~~~~
 ;;; > 123.0
@@ -181,11 +243,7 @@ channel."
   "Transcode FIXED-WIDTH-BLOCK element into Markdown format.
 CONTENTS is nil.  INFO is a plist used as a communication
 channel."
-  (let ((linenos (org-element-property :number-lines src-block)))
-    (format "%s~~~~~~~~\n%s~~~~~~~~"
-            (if linenos "{linenos=on}\n" "")
-            (org-remove-indentation
-             (org-element-property :value src-block)))))
+  (org-leanpub-src-block src-block contents info))
 
 ;;; Export special blocks, mapping them to corresponding block types according to the LeanPub documentation at https://leanpub.com/help/manual#leanpub-auto-blocks-of-text.
 ;;; The supported block types and their conversions are listed in lp-block-mappings.
@@ -200,6 +258,7 @@ channel."
 CONTENTS is nil.  INFO is a plist used as a communication
 channel."
   (let* ((type (org-element-property :type special-block))
+         (caption (org-export-data (org-element-property :caption special-block) info))
          (lp-block-mappings
           '(tip "T"
             aside "A"
@@ -211,9 +270,15 @@ channel."
             exercise "X"
             center "C"))
          (lp-char (plist-get lp-block-mappings (intern type))))
-    (replace-regexp-in-string
-     "^" (concat lp-char "> ")
-     (org-remove-indentation contents))))
+    (concat
+     (org-leanpub-attribute-line special-block info)
+     (replace-regexp-in-string
+      "^" (concat lp-char "> ")
+      (concat
+       (when (> (length caption) 0) (format "### %s\n" caption))
+       (replace-regexp-in-string (rx (* (any " \t\n")) eos)
+                                 ""
+                                 (org-remove-indentation contents)))))))
 
 (defun org-leanpub-link (link contents info)
   "Transcode a link object into Markdown format.
@@ -222,7 +287,7 @@ a communication channel."
   (let ((type (org-element-property :type link)))
     (cond ((member type '("custom-id" "id"))
            (let ((id (org-element-property :path link)))
-             (format "[%s](#L%s)" contents id)))
+             (format "[%s](#%s)" contents id)))
           ((org-export-inline-image-p link org-html-inline-image-rules)
            (let ((path (let ((raw-path (org-element-property :path link)))
                          (if (not (file-name-absolute-p raw-path)) raw-path
@@ -242,6 +307,13 @@ a communication channel."
                    (if (not contents) (format "<%s>" path)
                      (format "[%s](%s)" contents path))
                  contents))))))
+
+;;;; Line Break
+
+(defun org-leanpub-line-break (_line-break _contents info)
+  "Transcode a LINE-BREAK object from Org to Markdown.
+CONTENTS is nil.  INFO is a plist holding contextual information."
+  "  \n")
 
 ;;; Interactive function
 
