@@ -54,6 +54,8 @@
                      (latex-fragment . org-leanpub-latex-fragment)
                      (line-break . org-leanpub-line-break)
                      (table . org-leanpub-table)
+                     (table-cell . org-leanpub-table-cell)
+                     (table-row . org-leanpub-table-row)
                      ;; Will not work with leanpub:
                      (export-block . org-leanpub-ignore)))
 
@@ -95,6 +97,12 @@
        output
        (unless nonewline "\n")))))
 
+(defun chomp-end (str)
+  "Chomp tailing whitespace from STR."
+  (replace-regexp-in-string (rx (* (any " \t\n")) eos)
+                            ""
+                            str))
+
 (defun org-leanpub-table (table contents info)
   "Transcode a table object from Org to Markdown.
 CONTENTS is nil.  INFO is a plist holding contextual information.
@@ -108,9 +116,13 @@ Add an #+attr_leanpub: line right before the table with the formatting info that
 "
   (concat
    (org-leanpub-attribute-line table info)
-   (buffer-substring (org-element-property :contents-begin table)
-                                               (org-element-property :contents-end table))))
+   (replace-regexp-in-string "^\s*\n" "" (org-export-data (org-element-contents table) info))))
 
+(defun org-leanpub-table-row (table-row contents info)
+  (format "| %s" (org-export-data contents info)))
+
+(defun org-leanpub-table-cell (table-cell contents info)
+  (format " %s |" (org-export-data contents info)))
 
 (defun org-leanpub-latex-fragment (latex-fragment contents info)
   "Transcode a LATEX-FRAGMENT object from Org to Markdown.
@@ -276,9 +288,7 @@ channel."
       "^" (concat lp-char "> ")
       (concat
        (when (> (length caption) 0) (format "### %s\n" caption))
-       (replace-regexp-in-string (rx (* (any " \t\n")) eos)
-                                 ""
-                                 (org-remove-indentation contents)))))))
+       (chomp-end (org-remove-indentation contents)))))))
 
 (defun org-leanpub-link (link contents info)
   "Transcode a link object into Markdown format.
