@@ -68,10 +68,10 @@
 
 (org-export-define-derived-backend 'leanpub-book 'leanpub
   :menu-entry
-  '(?B "LeanPub Book"
-       ((?b "Whole book" (lambda (a s v b) (org-leanpub-export-book a s v b)))
-        (?s "Subset" (lambda (a s v b) (org-leanpub-export-book a s v b t)))
-        (?c "Current chapter" (lambda (a s v b) (org-leanpub-export-book a s v b t "current")))))
+  '(?L 1
+       ((?b "Multifile: Whole book"      (lambda (a s v b) (org-leanpub-export-book a s v b)))
+        (?s "Multifile: Subset"          (lambda (a s v b) (org-leanpub-export-book a s v b t)))
+        (?c "Multifile: Current chapter" (lambda (a s v b) (org-leanpub-export-book a s v b t 'current)))))
   :options-alist
   '((:leanpub-book-output-dir   "LEANPUB_BOOK_OUTPUT_DIR"   nil "manuscript" t)
     (:leanpub-book-write-subset "LEANPUB_BOOK_WRITE_SUBSET" nil "none"       t)))
