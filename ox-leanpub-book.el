@@ -66,15 +66,18 @@
 (require 'ox-leanpub)
 (require 'ob-core)
 
-(org-export-define-derived-backend 'leanpub-book 'leanpub
-  :menu-entry
-  '(?L 1
-       ((?b "Multifile: Whole book"      (lambda (a s v b) (org-leanpub-export-book a s v b)))
-        (?s "Multifile: Subset"          (lambda (a s v b) (org-leanpub-export-book a s v b t)))
-        (?c "Multifile: Current chapter" (lambda (a s v b) (org-leanpub-export-book a s v b t 'current)))))
-  :options-alist
-  '((:leanpub-book-output-dir   "LEANPUB_BOOK_OUTPUT_DIR"   nil "manuscript" t)
-    (:leanpub-book-write-subset "LEANPUB_BOOK_WRITE_SUBSET" nil "none"       t)))
+(defun org-leanpub-book-setup-menu-markdown ()
+  "Set up the Multifile export menu entries within the Leanpub Markdown menu"
+  (interactive)
+    (org-export-define-derived-backend 'leanpub-book 'leanpub
+      :menu-entry
+      '(?L 1
+           ((?b "Multifile: Whole book"      (lambda (a s v b) (org-leanpub-export-book a s v b)))
+            (?s "Multifile: Subset"          (lambda (a s v b) (org-leanpub-export-book a s v b t)))
+            (?c "Multifile: Current chapter" (lambda (a s v b) (org-leanpub-export-book a s v b t 'current)))))
+      :options-alist
+      '((:leanpub-book-output-dir   "LEANPUB_BOOK_OUTPUT_DIR"   nil "manuscript" t)
+        (:leanpub-book-write-subset "LEANPUB_BOOK_WRITE_SUBSET" nil "none"       t))))
 
 (defun org-leanpub-export-book (&optional async subtreep visible-only body-only only-subset subset-type)
   "Export buffer to a Leanpub book, splitting by top-level headline and populating the corresponding book-specification files."
