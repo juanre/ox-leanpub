@@ -166,7 +166,7 @@
     ;; Loop through all the elements in the document, exporting them
     ;; as needed, except for those tagged with "noexport"
     (save-mark-and-excursion
-      (org-map-entries (lambda () (process-chapter)) "-noexport"))
+      (org-map-entries #'process-chapter "-noexport"))
 
     (message (format "LeanPub export to %s/ finished" outdir))))
 
