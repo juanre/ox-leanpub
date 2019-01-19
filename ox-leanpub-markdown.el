@@ -1,4 +1,4 @@
-;;; ox-leanpub.el --- Leanpub Markdown Back-End for Org Export Engine
+;;; ox-leanpub-markdown.el --- Leanpub Markdown Back-End for Org Export Engine
 
 ;; Author: Juan Reyero <juan _at! juanreyero.com>
 ;; Keywords: org, wp, markdown, leanpub
@@ -390,6 +390,6 @@ publishing directory.
 Return output file name."
   (org-publish-org-to 'leanpub filename ".md" plist pub-dir))
 
-(provide 'ox-leanpub)
+(provide 'ox-leanpub-markdown)
 
-;;; ox-leanpub.el ends here
+;;; ox-leanpub-markdown.el ends here

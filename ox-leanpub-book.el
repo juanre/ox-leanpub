@@ -63,7 +63,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'ox-leanpub)
+(require 'ox-leanpub-markdown)
 (require 'ob-core)
 
 (defun org-leanpub-book-setup-menu-markdown ()

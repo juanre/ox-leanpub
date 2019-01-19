@@ -1,11 +1,11 @@
-;;; ox-markua.el --- Markua Back-End for Org Export Engine
+;;; ox-leanpub-markua.el --- Markua Back-End for Org Export Engine
 
 ;; Author: Diego Zamboni <diego@zzamboni.org>
 ;; Keywords: org, wp, markdown, leanpub, markua
 
 ;;; Commentary:
 
-;;; Adaptation of ox-leanpub.el to use Markua markup as appropriate, as
+;;; Adaptation of ox-leanpub-markdown.el to use Markua markup as appropriate, as
 ;;; used by Leanpub (https://leanpub.com/markua/read) publication.  It handles
 ;;; footnotes, and makes source code separated from its output, and
 ;;; the output does not display line numbers.  Html blocks are
@@ -389,6 +389,6 @@ publishing directory.
 Return output file name."
   (org-publish-org-to 'leanpub filename ".md" plist pub-dir))
 
-(provide 'ox-leanpub)
+(provide 'ox-leanpub-markua)
 
-;;; ox-leanpub.el ends here
+;;; ox-leanpub-markua.el ends here
