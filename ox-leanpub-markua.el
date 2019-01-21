@@ -35,12 +35,12 @@
   :menu-entry
   '(?M "Export to Leanpub Markua"
        ((?M "To temporary buffer"
-	    (lambda (a s v b) (org-markua-export-as-markdown a s v)))
-	(?m "To file" (lambda (a s v b) (org-markua-export-to-markdown a s v)))
-	(?o "To file and open"
-	    (lambda (a s v b)
-	      (if a (org-markua-export-to-markdown t s v)
-		(org-open-file (org-markua-export-to-markdown nil s v)))))))
+	          (lambda (a s v b) (org-markua-export-as-markdown a s v)))
+	      (?m "To file" (lambda (a s v b) (org-markua-export-to-markdown a s v)))
+	      (?o "To file and open"
+	          (lambda (a s v b)
+	            (if a (org-markua-export-to-markdown t s v)
+		            (org-open-file (org-markua-export-to-markdown nil s v)))))))
   :translate-alist '((fixed-width . org-markua-fixed-width-block)
                      (example-block . org-markua-example-block)
                      (special-block . org-markua-special-block)
@@ -83,7 +83,7 @@
                                                                 (val (cdr elem)))
                                                            (when (and (> (length val) 0) (not (plist-member printed keysym)))
                                                              (setq printed (plist-put printed keysym t))
-                                                             (format "%s=\"%s\"" keystr val))))
+                                                             (format "%s: \"%s\"" keystr val))))
                                                        lpattr)) ", "))
          (output (if oldstyle
                      (format "%s" lpattr-str)
@@ -105,9 +105,7 @@
 (defun org-markua-table (table contents info)
   "Transcode a table object from Org to Markdown.
 CONTENTS is nil.  INFO is a plist holding contextual information.
-Add an #+attr_leanpub: line right before the table with the formatting info that you want to pass to markdown, like
 
-#+attr_leanpub: {title=\"Figure 32\",width=\"60%\"}
 | a table | second col |
 |---------+------------|
 | second  | line       |
@@ -140,39 +138,39 @@ a communication channel. This is the same function as
 org-md-headline but without inserting the <a> anchors."
   (unless (org-element-property :footnote-section-p headline)
     (let* ((level (org-export-get-relative-level headline info))
-	   (title (org-export-data (org-element-property :title headline) info))
-	   (todo (and (plist-get info :with-todo-keywords)
-		      (let ((todo (org-element-property :todo-keyword
-							headline)))
-			(and todo (concat (org-export-data todo info) " ")))))
-	   (tags (and (plist-get info :with-tags)
-		      (let ((tag-list (org-export-get-tags headline info)))
-			(and tag-list
-			     (concat "     " (org-make-tag-string tag-list))))))
-	   (priority
-	    (and (plist-get info :with-priority)
-		 (let ((char (org-element-property :priority headline)))
-		   (and char (format "[#%c] " char)))))
-	   ;; Headline text without tags.
-	   (heading (concat todo priority title))
-	   (style (plist-get info :md-headline-style)))
+	         (title (org-export-data (org-element-property :title headline) info))
+	         (todo (and (plist-get info :with-todo-keywords)
+		                  (let ((todo (org-element-property :todo-keyword
+							                                          headline)))
+			                  (and todo (concat (org-export-data todo info) " ")))))
+	         (tags (and (plist-get info :with-tags)
+		                  (let ((tag-list (org-export-get-tags headline info)))
+			                  (and tag-list
+			                       (concat "     " (org-make-tag-string tag-list))))))
+	         (priority
+	          (and (plist-get info :with-priority)
+		             (let ((char (org-element-property :priority headline)))
+		               (and char (format "[#%c] " char)))))
+	         ;; Headline text without tags.
+	         (heading (concat todo priority title))
+	         (style (plist-get info :md-headline-style)))
       (cond
        ;; Cannot create a headline.  Fall-back to a list.
        ((or (org-export-low-level-p headline info)
-	    (not (memq style '(atx setext)))
-	    (and (eq style 'atx) (> level 6))
-	    (and (eq style 'setext) (> level 2)))
-	(let ((bullet
-	       (if (not (org-export-numbered-headline-p headline info)) "-"
-		 (concat (number-to-string
-			  (car (last (org-export-get-headline-number
-				      headline info))))
-			 "."))))
-	  (concat bullet (make-string (- 4 (length bullet)) ?\s) heading tags "\n\n"
-		  (and contents (replace-regexp-in-string "^" "    " contents)))))
+	          (not (memq style '(atx setext)))
+	          (and (eq style 'atx) (> level 6))
+	          (and (eq style 'setext) (> level 2)))
+	      (let ((bullet
+	             (if (not (org-export-numbered-headline-p headline info)) "-"
+		             (concat (number-to-string
+			                    (car (last (org-export-get-headline-number
+				                              headline info))))
+			                   "."))))
+	        (concat bullet (make-string (- 4 (length bullet)) ?\s) heading tags "\n\n"
+		              (and contents (replace-regexp-in-string "^" "    " contents)))))
        (t
-	(concat (org-md--headline-title style level heading nil tags)
-		        contents))))))
+	      (concat (org-md--headline-title style level heading nil tags)
+		            contents))))))
 
 ;;; Adding the id so that crosslinks work.
 (defun org-markua-headline (headline contents info)
@@ -195,9 +193,9 @@ definitions at the end."
                   (let ((id (format "[^%s]: " (replace-regexp-in-string
                                                ":" "_"
                                                (let ((label (cadr ref)))
-                                                (if label
-                                                    label
-                                                  (car ref)))))))
+                                                 (if label
+                                                     label
+                                                   (car ref)))))))
                     (let ((def (nth 2 ref)))
                       (concat id (org-export-data def info)))))
                 definitions "\n\n"))))
@@ -272,14 +270,14 @@ channel."
          (caption (org-export-data (org-element-property :caption special-block) info))
          (lp-block-mappings
           '(tip "T"
-            aside "A"
-            warning "W"
-            error "E"
-            note "I"
-            question "Q"
-            discussion "D"
-            exercise "X"
-            center "C"))
+                aside "A"
+                warning "W"
+                error "E"
+                note "I"
+                question "Q"
+                discussion "D"
+                exercise "X"
+                center "C"))
          (lp-char (plist-get lp-block-mappings (intern type))))
     (concat
      (org-markua-attribute-line special-block info)
