@@ -63,33 +63,50 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'ox-leanpub-markdown)
 (require 'ob-core)
 
 (defun org-leanpub-book-setup-menu-markdown ()
   "Set up the Multifile export menu entries within the Leanpub Markdown menu"
   (interactive)
-  (org-export-define-derived-backend 'leanpub-book 'leanpub
+  (require 'ox-leanpub-markdown)
+  (org-export-define-derived-backend 'leanpub-book-markdown 'leanpub
     :menu-entry
     '(?L 1
-         ((?b "Multifile: Whole book"      (lambda (a s v b) (org-leanpub-export-book a s v b)))
-          (?s "Multifile: Subset"          (lambda (a s v b) (org-leanpub-export-book a s v b t)))
-          (?c "Multifile: Current chapter" (lambda (a s v b) (org-leanpub-export-book a s v b t 'current)))))
+         ((?b "Multifile: Whole book"      (lambda (a s v b) (org-leanpub-export-book #'org-leanpub-markdown-export-to-markdown ".md" 'leanpub-book-markdown a s v b)))
+          (?s "Multifile: Subset"          (lambda (a s v b) (org-leanpub-export-book #'org-leanpub-markdown-export-to-markdown ".md" 'leanpub-book-markdown a s v b t)))
+          (?c "Multifile: Current chapter" (lambda (a s v b) (org-leanpub-export-book #'org-leanpub-markdown-export-to-markdown ".md" 'leanpub-book-markdown a s v b t 'current)))))
     :options-alist
-    '((:leanpub-book-output-dir   "LEANPUB_BOOK_OUTPUT_DIR"   nil "manuscript" t)
-      (:leanpub-book-write-subset "LEANPUB_BOOK_WRITE_SUBSET" nil "none"       t))))
+    '((:leanpub-book-output-dir          "LEANPUB_BOOK_OUTPUT_DIR"          nil "manuscript" t)
+      (:leanpub-book-write-subset        "LEANPUB_BOOK_WRITE_SUBSET"        nil "none"       t)
+      (:leanpub-book-recompute-filenames "LEANPUB_BOOK_RECOMPUTE_FILENAMES" nil nil       t))))
+
+(defun org-leanpub-book-setup-menu-markua ()
+  "Set up the Multifile export menu entries within the Leanpub Markua menu"
+  (interactive)
+  (require 'ox-leanpub-markua)
+  (org-export-define-derived-backend 'leanpub-book-markua 'markua
+    :menu-entry
+    '(?M 1
+         ((?b "Multifile: Whole book"      (lambda (a s v b) (org-leanpub-export-book #'org-leanpub-markua-export-to-markua ".markua" 'leanpub-book-markua a s v b)))
+          (?s "Multifile: Subset"          (lambda (a s v b) (org-leanpub-export-book #'org-leanpub-markua-export-to-markua ".markua" 'leanpub-book-markua a s v b t)))
+          (?c "Multifile: Current chapter" (lambda (a s v b) (org-leanpub-export-book #'org-leanpub-markua-export-to-markua ".markua" 'leanpub-book-markua a s v b t 'current)))))
+    :options-alist
+    '((:leanpub-book-output-dir          "LEANPUB_BOOK_OUTPUT_DIR"          nil "manuscript" t)
+      (:leanpub-book-write-subset        "LEANPUB_BOOK_WRITE_SUBSET"        nil "none"       t)
+      (:leanpub-book-recompute-filenames "LEANPUB_BOOK_RECOMPUTE_FILENAMES" nil nil       t))))
 
 ;; Main export function
-(defun org-leanpub-export-book (&optional async subtreep visible-only body-only only-subset subset-type)
+(defun org-leanpub-export-book (export-function export-extension export-backend-symbol &optional async subtreep visible-only body-only only-subset subset-type)
   "Export buffer to a Leanpub book, splitting by top-level headline and populating the corresponding book-specification files."
   (interactive)
   (let* ((info (org-combine-plists
                 (org-export--get-export-attributes
-                 'leanpub-book subtreep visible-only)
+                 export-backend-symbol subtreep visible-only)
                 (org-export--get-buffer-attributes)
-                (org-export-get-environment 'leanpub-book subtreep)))
+                (org-export-get-environment export-backend-symbol subtreep)))
          (outdir (plist-get info :leanpub-book-output-dir))
          (subset-mode (or subset-type (intern (plist-get info :leanpub-book-write-subset))))
+         (ignore-stored-filenames (plist-get info :leanpub-book-output-dir))
          (produce-subset (and subset-mode (not (eq subset-mode 'none))))
          (matter-tags '("frontmatter" "mainmatter" "backmatter"))
          (original-point (point)))
@@ -115,9 +132,9 @@
                (tags (org-get-tags))
                ;; Compute or get (from EXPORT_FILE_NAME) the output filename
                (basename (concat (replace-regexp-in-string " " "-" (downcase (or id title)))
-                                 ".md"))
+                                 export-extension))
                (computed-filename (outfile basename))
-               (stored-filename (org-entry-get (point) "EXPORT_FILE_NAME"))
+               (stored-filename (if ignore-stored-filenames nil (org-entry-get (point) "EXPORT_FILE_NAME")))
                (final-filename (or stored-filename computed-filename))
                ;; Was the cursor in the current subtree when export started?
                (point-in-subtree (<= (org-element-property :begin current-subtree)
@@ -154,7 +171,7 @@
             ;; (otherwise we get just the body)
             (org-mark-subtree)
             (message (format "Exporting %s (%s)" final-filename title))
-            (org-leanpub-export-to-markdown nil t)))))
+            (funcall export-function nil t)))))
 
     ;; Initialization: delete all the book definition and *matter.txt
     ;; files, they get recreated as needed
