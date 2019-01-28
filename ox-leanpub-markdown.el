@@ -36,12 +36,12 @@
   :menu-entry
   '(?L "Export to Leanpub Markdown"
        ((?L "To temporary buffer"
-	    (lambda (a s v b) (org-leanpub-export-as-markdown a s v)))
-	(?l "To file" (lambda (a s v b) (org-leanpub-export-to-markdown a s v)))
+	    (lambda (a s v b) (org-leanpub-markdown-export-as-markdown a s v)))
+	(?l "To file" (lambda (a s v b) (org-leanpub-markdown-export-to-markdown a s v)))
 	(?o "To file and open"
 	    (lambda (a s v b)
-	      (if a (org-leanpub-export-to-markdown t s v)
-		(org-open-file (org-leanpub-export-to-markdown nil s v)))))))
+	      (if a (org-leanpub-markdown-export-to-markdown t s v)
+		(org-open-file (org-leanpub-markdown-export-to-markdown nil s v)))))))
   :translate-alist '((fixed-width . org-leanpub-fixed-width-block)
                      (example-block . org-leanpub-example-block)
                      (special-block . org-leanpub-special-block)
@@ -328,7 +328,7 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
 ;;; Interactive function
 
 ;;;###autoload
-(defun org-leanpub-export-as-markdown (&optional async subtreep visible-only)
+(defun org-leanpub-markdown-export-as-markdown (&optional async subtreep visible-only)
   "Export current buffer to a Markdown buffer.
 
 If narrowing is active in the current buffer, only export its
@@ -355,7 +355,7 @@ non-nil."
     async subtreep visible-only nil nil (lambda () (text-mode))))
 
 ;;;###autoload
-(defun org-leanpub-export-to-markdown (&optional async subtreep visible-only)
+(defun org-leanpub-markdown-export-to-markdown (&optional async subtreep visible-only)
   "Export current buffer to a Leanpub's compatible Markdown file.
 
 If narrowing is active in the current buffer, only export its
