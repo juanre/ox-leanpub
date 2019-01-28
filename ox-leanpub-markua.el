@@ -35,12 +35,12 @@
   :menu-entry
   '(?M "Export to Leanpub Markua"
        ((?M "To temporary buffer"
-	          (lambda (a s v b) (org-markua-export-as-markdown a s v)))
-	      (?m "To file" (lambda (a s v b) (org-markua-export-to-markdown a s v)))
+	          (lambda (a s v b) (org-leanpub-markua-export-as-markua a s v)))
+	      (?m "To file" (lambda (a s v b) (org-leanpub-markua-export-to-markua a s v)))
 	      (?o "To file and open"
 	          (lambda (a s v b)
-	            (if a (org-markua-export-to-markdown t s v)
-		            (org-open-file (org-markua-export-to-markdown nil s v)))))))
+	            (if a (org-leanpub-markua-export-to-markua t s v)
+		            (org-open-file (org-leanpub-markua-export-to-markua nil s v)))))))
   :translate-alist '((fixed-width . org-markua-fixed-width-block)
                      (example-block . org-markua-example-block)
                      (special-block . org-markua-special-block)
@@ -52,6 +52,7 @@
                      (link . org-markua-link)
                      (latex-fragment . org-markua-latex-fragment)
                      (line-break . org-markua-line-break)
+                     (paragraph . org-markua-paragraph)
                      (table . org-markua-table)
                      (table-cell . org-markua-table-cell)
                      (table-row . org-markua-table-row)
@@ -103,7 +104,7 @@
                             str))
 
 (defun org-markua-table (table contents info)
-  "Transcode a table object from Org to Markdown.
+  "Transcode a table object from Org to Markua.
 CONTENTS is nil.  INFO is a plist holding contextual information.
 
 | a table | second col |
@@ -122,17 +123,17 @@ CONTENTS is nil.  INFO is a plist holding contextual information.
   (format " %s |" (org-export-data contents info)))
 
 (defun org-markua-latex-fragment (latex-fragment contents info)
-  "Transcode a LATEX-FRAGMENT object from Org to Markdown.
+  "Transcode a LATEX-FRAGMENT object from Org to Markua.
 CONTENTS is nil.  INFO is a plist holding contextual information."
   (concat
-   (format "{$$}%s{/$$}"
+   (format "`%s`$"
            ;; Removes the \[, \] and $ that mark latex fragments
            (replace-regexp-in-string
             "\\\\\\[\\|\\\\\\]\\|\\$" ""
             (org-element-property :value latex-fragment)))))
 
 (defun org-md-headline-without-anchor (headline contents info)
-  "Transcode HEADLINE element into Markdown format.
+  "Transcode HEADLINE element into Markua format.
 CONTENTS is the headline contents.  INFO is a plist used as
 a communication channel. This is the same function as
 org-md-headline but without inserting the <a> anchors."
@@ -178,7 +179,7 @@ org-md-headline but without inserting the <a> anchors."
           (org-md-headline-without-anchor headline contents info)))
 
 (defun org-markua-inner-template (contents info)
-  "Return complete document string after markdown conversion.
+  "Return complete document string after Markua conversion.
 CONTENTS is the transcoded contents string.  INFO is a plist
 holding export options.  Required in order to add footnote
 definitions at the end."
@@ -216,6 +217,15 @@ definitions at the end."
 (defun org-markua-plain-text (text info)
   text)
 
+;;; EOLs are removed from paragraphs in Markua
+
+(defun org-markua-paragraph (paragraph contents info)
+  "Transcode a PARAGRAPH element from Org to Markua.
+CONTENTS is the contents of the paragraph, as a string.  INFO is
+the plist used as a communication channel."
+  ;;(message (format "Formatting paragraph: %s" contents))
+  (replace-regexp-in-string "\n" " " contents))
+
 ;;; {lang="python"}
 ;;; ~~~~~~~~
 ;;; def longitude_circle(diameter):
@@ -223,15 +233,15 @@ definitions at the end."
 ;;; longitude(10)
 ;;; ~~~~~~~~
 (defun org-markua-src-block (src-block contents info)
-  "Transcode SRC-BLOCK element into Markdown format.
+  "Transcode SRC-BLOCK element into Markua format.
 CONTENTS is nil.  INFO is a plist used as a communication
 channel."
-  (let ((attrs (list (cons :lang (org-element-property :language src-block))
-                     (cons :linenos (when (org-element-property :number-lines src-block) "on"))))
+  (let ((attrs (list (cons :format (org-element-property :language src-block))
+                     (cons :line-numbers (when (org-element-property :number-lines src-block) "true"))))
         (block-value (org-element-property :value src-block)))
     (concat
      (org-markua-attribute-line src-block info attrs)
-     (format "~~~~~~~~\n%s%s~~~~~~~~"
+     (format "```\n%s%s```"
              (org-remove-indentation block-value)
              ;; Insert a newline if the block doesn't end with one
              (if (string-suffix-p "\n" block-value) "" "\n")))))
@@ -240,16 +250,7 @@ channel."
 ;;; > 123.0
 ;;; > ~~~~~~~~
 (defun org-markua-example-block (src-block contents info)
-  "Transcode FIXED-WIDTH-BLOCK element into Markdown format.
-CONTENTS is nil.  INFO is a plist used as a communication
-channel."
-  (org-markua-src-block src-block contents info))
-
-;;; > ~~~~~~~~
-;;; > 123.0
-;;; > ~~~~~~~~
-(defun org-markua-fixed-width-block (src-block contents info)
-  "Transcode FIXED-WIDTH-BLOCK element into Markdown format.
+  "Transcode FIXED-WIDTH-BLOCK element into Markua format.
 CONTENTS is nil.  INFO is a plist used as a communication
 channel."
   (org-markua-src-block src-block contents info))
@@ -263,7 +264,7 @@ channel."
 ;;; gets exported as
 ;;;     T> This is a tip
 (defun org-markua-special-block (special-block contents info)
-  "Transcode a SPECIAL-BLOCK element into Markdown format.
+  "Transcode a SPECIAL-BLOCK element into Markua format.
 CONTENTS is nil.  INFO is a plist used as a communication
 channel."
   (let* ((type (org-element-property :type special-block))
@@ -288,7 +289,7 @@ channel."
        (chomp-end (org-remove-indentation contents)))))))
 
 (defun org-markua-link (link contents info)
-  "Transcode a link object into Markdown format.
+  "Transcode a link object into Markua format.
 CONTENTS is the link's description.  INFO is a plist used as
 a communication channel."
   (let ((type (org-element-property :type link)))
@@ -318,15 +319,15 @@ a communication channel."
 ;;;; Line Break
 
 (defun org-markua-line-break (_line-break _contents info)
-  "Transcode a LINE-BREAK object from Org to Markdown.
+  "Transcode a LINE-BREAK object from Org to Markua.
 CONTENTS is nil.  INFO is a plist holding contextual information."
-  "  \n")
+  "\n")
 
 ;;; Interactive function
 
 ;;;###autoload
-(defun org-markua-export-as-markdown (&optional async subtreep visible-only)
-  "Export current buffer to a Markdown buffer.
+(defun org-leanpub-markua-export-as-markua (&optional async subtreep visible-only)
+  "Export current buffer to a Markua buffer.
 
 If narrowing is active in the current buffer, only export its
 narrowed part.
@@ -348,12 +349,12 @@ Export is done in a buffer named \"*Org MD Export*\", which will
 be displayed when `org-export-show-temporary-export-buffer' is
 non-nil."
   (interactive)
-  (org-export-to-buffer 'leanpub "*Org LEANPUB Export*"
+  (org-export-to-buffer 'markua "*Org MARKUA Export*"
     async subtreep visible-only nil nil (lambda () (text-mode))))
 
 ;;;###autoload
-(defun org-markua-export-to-markdown (&optional async subtreep visible-only)
-  "Export current buffer to a Leanpub's compatible Markdown file.
+(defun org-leanpub-markua-export-to-markua (&optional async subtreep visible-only)
+  "Export current buffer to a Leanpub compatible Markua file.
 
 If narrowing is active in the current buffer, only export its
 narrowed part.
@@ -373,19 +374,19 @@ contents of hidden elements.
 
 Return output file's name."
   (interactive)
-  (let ((outfile (org-export-output-file-name ".md" subtreep)))
-    (org-export-to-file 'leanpub outfile async subtreep visible-only)))
+  (let ((outfile (org-export-output-file-name ".markua" subtreep)))
+    (org-export-to-file 'markua outfile async subtreep visible-only)))
 
 ;;;###autoload
 (defun org-markua-publish-to-leanpub (plist filename pub-dir)
-  "Publish an org file to leanpub.
+  "Publish an org file to leanpub in Markua format.
 
 FILENAME is the filename of the Org file to be published.  PLIST
 is the property list for the given project.  PUB-DIR is the
 publishing directory.
 
 Return output file name."
-  (org-publish-org-to 'leanpub filename ".md" plist pub-dir))
+  (org-publish-org-to 'markua filename ".markua" plist pub-dir))
 
 (provide 'ox-leanpub-markua)
 
