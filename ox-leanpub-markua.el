@@ -49,6 +49,7 @@
                      (inner-template . org-markua-inner-template)
                      (footnote-reference . org-markua-footnote-reference)
                      (headline . org-markua-headline)
+                     (item . org-markua-item)
                      (link . org-markua-link)
                      (latex-fragment . org-markua-latex-fragment)
                      (line-break . org-markua-line-break)
@@ -132,7 +133,7 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
             "\\\\\\[\\|\\\\\\]\\|\\$" ""
             (org-element-property :value latex-fragment)))))
 
-(defun org-md-headline-without-anchor (headline contents info)
+(defun org-leanpub-markua-headline-without-anchor (headline contents info)
   "Transcode HEADLINE element into Markua format.
 CONTENTS is the headline contents.  INFO is a plist used as
 a communication channel. This is the same function as
@@ -167,8 +168,8 @@ org-md-headline but without inserting the <a> anchors."
 			                    (car (last (org-export-get-headline-number
 				                              headline info))))
 			                   "."))))
-	        (concat bullet (make-string (- 4 (length bullet)) ?\s) heading tags "\n\n"
-		              (and contents (replace-regexp-in-string "^" "    " contents)))))
+	        (concat bullet " " heading tags "\n\n"
+		              (and contents (replace-regexp-in-string "^" (make-string (1+ (length bullet)) ?\s) contents)))))
        (t
 	      (concat (org-md--headline-title style level heading nil tags)
 		            contents))))))
@@ -176,7 +177,26 @@ org-md-headline but without inserting the <a> anchors."
 ;;; Adding the id so that crosslinks work.
 (defun org-markua-headline (headline contents info)
   (concat (org-markua-attribute-line headline info nil t)
-          (org-md-headline-without-anchor headline contents info)))
+          (org-leanpub-markua-headline-without-anchor headline contents info)))
+
+(defun org-markua-item (item contents info)
+  "Transcode ITEM element into Markua format.
+CONTENTS is the item contents.  INFO is a plist used as
+a communication channel."
+  (let* ((type (org-element-property :type (org-export-get-parent item)))
+	 (struct (org-element-property :structure item))
+	 (bullet (if (not (eq type 'ordered)) "-"
+		   (concat (number-to-string
+			    (car (last (org-list-get-item-number
+					(org-element-property :begin item)
+					struct
+					(org-list-prevs-alist struct)
+					(org-list-parents-alist struct)))))
+			   "."))))
+    (concat bullet
+	    " "
+	    (and contents
+		       (org-trim (replace-regexp-in-string "^" (make-string (1+ (length bullet)) ?\s) contents))))))
 
 (defun org-markua-inner-template (contents info)
   "Return complete document string after Markua conversion.

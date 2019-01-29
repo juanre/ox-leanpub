@@ -134,7 +134,7 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
             "\\\\\\[\\|\\\\\\]\\|\\$" ""
             (org-element-property :value latex-fragment)))))
 
-(defun org-md-headline-without-anchor (headline contents info)
+(defun org-leanpub-markdown-headline-without-anchor (headline contents info)
   "Transcode HEADLINE element into Markdown format.
 CONTENTS is the headline contents.  INFO is a plist used as
 a communication channel. This is the same function as
@@ -178,7 +178,7 @@ org-md-headline but without inserting the <a> anchors."
 ;;; Adding the id so that crosslinks work.
 (defun org-leanpub-headline (headline contents info)
   (concat (org-leanpub-attribute-line headline info nil t)
-          (org-md-headline-without-anchor headline contents info)))
+          (org-leanpub-markdown-headline-without-anchor headline contents info)))
 
 (defun org-leanpub-inner-template (contents info)
   "Return complete document string after markdown conversion.
