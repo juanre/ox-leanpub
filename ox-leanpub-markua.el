@@ -185,7 +185,7 @@ CONTENTS is the item contents.  INFO is a plist used as
 a communication channel."
   (let* ((type (org-element-property :type (org-export-get-parent item)))
 	 (struct (org-element-property :structure item))
-	 (bullet (if (not (eq type 'ordered)) "-"
+	 (bullet (if (not (eq type 'ordered)) "*"
 		   (concat (number-to-string
 			    (car (last (org-list-get-item-number
 					(org-element-property :begin item)
