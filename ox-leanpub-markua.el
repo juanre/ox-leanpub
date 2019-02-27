@@ -375,7 +375,7 @@ definitions at the end."
 CONTENTS is the contents of the paragraph, as a string.  INFO is
 the plist used as a communication channel."
   ;;(message (format "Formatting paragraph: %s" contents))
-  (replace-regexp-in-string "\n" " " contents))
+  (replace-regexp-in-string "{{markua:linebreak}}" "\n" (replace-regexp-in-string "\n" " " contents) nil 'literal))
 
 ;;; {lang="python"}
 ;;; ~~~~~~~~
@@ -472,7 +472,7 @@ a communication channel."
 (defun org-markua-line-break (_line-break _contents info)
   "Transcode a LINE-BREAK object from Org to Markua.
 CONTENTS is nil.  INFO is a plist holding contextual information."
-  "\n")
+  "{{markua:linebreak}}")
 
 ;;; Interactive function
 
