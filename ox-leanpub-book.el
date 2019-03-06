@@ -106,7 +106,7 @@
                 (org-export-get-environment export-backend-symbol subtreep)))
          (outdir (plist-get info :leanpub-book-output-dir))
          (subset-mode (or subset-type (intern (plist-get info :leanpub-book-write-subset))))
-         (ignore-stored-filenames (plist-get info :leanpub-book-output-dir))
+         (ignore-stored-filenames (plist-get info :leanpub-book-recompute-filenames))
          (produce-subset (and subset-mode (not (eq subset-mode 'none))))
          (matter-tags '("frontmatter" "mainmatter" "backmatter"))
          (original-point (point)))
@@ -134,8 +134,8 @@
                (basename (concat (replace-regexp-in-string " " "-" (downcase (or id title)))
                                  export-extension))
                (computed-filename (outfile basename))
-               (stored-filename (if ignore-stored-filenames nil (org-entry-get (point) "EXPORT_FILE_NAME")))
-               (final-filename (or stored-filename computed-filename))
+               (stored-filename (org-entry-get (point) "EXPORT_FILE_NAME"))
+               (final-filename (if ignore-stored-filenames computed-filename (or stored-filename computed-filename)))
                ;; Was the cursor in the current subtree when export started?
                (point-in-subtree (<= (org-element-property :begin current-subtree)
                                      original-point
@@ -161,9 +161,9 @@
                 (append-to-file (concat "{" tag "}\n") nil (outfile fname))
                 (add-to-bookfiles fname t))))
           (when (or (not only-subset) is-subset)
-            ;; set filename only if the property is missing.
-            ;; If present, we assume its value is the correct one
-            (or stored-filename
+            ;; set filename only if the property is missing or different from the correct filename
+            (when (or (not stored-filename)
+                      (and ignore-stored-filenames (not (string= stored-filename computed-filename))))
                 (org-entry-put (point) "EXPORT_FILE_NAME" computed-filename))
             ;; add to the filename to the book files
             (add-to-bookfiles (file-name-nondirectory final-filename))
