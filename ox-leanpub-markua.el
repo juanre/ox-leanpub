@@ -375,7 +375,10 @@ definitions at the end."
 CONTENTS is the contents of the paragraph, as a string.  INFO is
 the plist used as a communication channel."
   ;;(message (format "Formatting paragraph: %s" contents))
-  (replace-regexp-in-string "{{markua:linebreak}}" "\n" (replace-regexp-in-string "\n" " " contents) nil 'literal))
+  (concat (org-markua-attribute-line paragraph info)
+          (replace-regexp-in-string "{{markua:linebreak}}" "\n"
+                                    (replace-regexp-in-string "\n" " " contents)
+                                    nil 'literal)))
 
 ;;; {lang="python"}
 ;;; ~~~~~~~~
