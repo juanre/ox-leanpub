@@ -28,6 +28,7 @@
 (eval-when-compile (require 'cl))
 (require 'ox-md)
 (require 'ob-core)
+(require 'subr-x)
 
 ;;; Define Back-End
 
@@ -307,8 +308,8 @@ org-md-headline but without inserting the <a> anchors."
 
 ;;; Adding the id so that crosslinks work.
 (defun org-markua-headline (headline contents info)
-  (concat (org-markua-attribute-line headline info nil t)
-          (org-leanpub-markua-headline-without-anchor headline contents info)))
+  (concat (org-markua-attribute-line headline info)
+          (string-trim-left (org-leanpub-markua-headline-without-anchor headline contents info))))
 
 (defun org-markua-item (item contents info)
   "Transcode ITEM element into Markua format.
