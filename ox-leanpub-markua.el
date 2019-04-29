@@ -410,6 +410,15 @@ CONTENTS is nil.  INFO is a plist used as a communication
 channel."
   (org-markua-src-block src-block contents info))
 
+;;; > ~~~~~~~~
+;;; > 123.0
+;;; > ~~~~~~~~
+(defun org-markua-fixed-width-block (src-block contents info)
+  "Transcode FIXED-WIDTH-BLOCK element into Markua format.
+CONTENTS is nil.  INFO is a plist used as a communication
+channel."
+  (org-markua-src-block src-block contents info))
+
 ;;; Export special blocks, mapping them to corresponding block types according to the LeanPub documentation at https://leanpub.com/help/manual#leanpub-auto-blocks-of-text.
 ;;; The supported block types and their conversions are listed in lp-block-mappings.
 ;;; e.g.
