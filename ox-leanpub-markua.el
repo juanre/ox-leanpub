@@ -316,19 +316,22 @@ org-md-headline but without inserting the <a> anchors."
 CONTENTS is the item contents.  INFO is a plist used as
 a communication channel."
   (let* ((type (org-element-property :type (org-export-get-parent item)))
-	 (struct (org-element-property :structure item))
-	 (bullet (if (not (eq type 'ordered)) "*"
-		   (concat (number-to-string
-			    (car (last (org-list-get-item-number
-					(org-element-property :begin item)
-					struct
-					(org-list-prevs-alist struct)
-					(org-list-parents-alist struct)))))
-			   "."))))
-    (concat bullet
-	    " "
-	    (and contents
-		       (org-trim (replace-regexp-in-string "^" (make-string (1+ (length bullet)) ?\s) contents))))))
+         (struct (org-element-property :structure item))
+         (bullet (if (not (eq type 'ordered)) "*"
+                   (concat (number-to-string
+                            (car (last (org-list-get-item-number
+                                        (org-element-property :begin item)
+                                        struct
+                                        (org-list-prevs-alist struct)
+                                        (org-list-parents-alist struct)))))
+                           ".")))
+         (tag (org-element-property :tag item)))
+    (concat (if tag
+                (concat (org-export-data tag info) "\n")
+              (concat bullet " "))
+            (and contents
+                 (concat (and tag ": ")
+                  (org-trim (replace-regexp-in-string "^" (make-string (1+ (length bullet)) ?\s) contents)))))))
 
 (defun org-markua-inner-template (contents info)
   "Return complete document string after Markua conversion.
