@@ -5,15 +5,14 @@
 
 ;;; Commentary:
 
-;;; Adaptation of ox-leanpub-markdown.el to use Markua markup as appropriate, as
-;;; used by Leanpub (https://leanpub.com/markua/read) publication.  It handles
-;;; footnotes, and makes source code separated from its output, and
-;;; the output does not display line numbers.  Html blocks are
-;;; ignored.  Links with IDs work.  Tables are exported as they are in
-;;; orgmode, which is pretty much what Leanpub's markdown accepts.
-;;; The #+NAME and #+CAPTION attributes of an object are converted to
-;;; the LeanPub "id" and "title" attributes. Other attributes
-;;; specified in an #+ATTR_LEANPUB line are included as-is. For example:
+;;; Adaptation of ox-leanpub-markdown.el to use Markua markup as
+;;; appropriate, as used by Leanpub (https://leanpub.com/markua/read).
+;;; It handles footnotes, source code blocks, links with IDs work.
+;;; Tables are exported in Github Flavored Markdown (courtesy of
+;;; ox-gfm), which is supported by Markua.  The #+NAME and #+CAPTION
+;;; attributes of an object are converted to the LeanPub "id" and
+;;; "title" attributes. Other attributes specified in an
+;;; #+ATTR_LEANPUB line are included as-is. For example:
 ;;;
 ;;; #+NAME: some-id
 ;;; #+CAPTION: Some name
