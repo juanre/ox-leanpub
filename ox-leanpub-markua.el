@@ -384,6 +384,10 @@ the plist used as a communication channel."
                                     (replace-regexp-in-string "\n" " " contents)
                                     nil 'literal)))
 
+(defun org-markua-get-header-arg (arg src-block)
+  ;(message "src-block=%s arg=%s parameters='%s'" src-block arg (org-element-property :parameters info))
+  (alist-get arg (org-babel-parse-header-arguments (org-element-property :parameters src-block))))
+
 ;;; {lang="python"}
 ;;; ~~~~~~~~
 ;;; def longitude_circle(diameter):
@@ -394,9 +398,12 @@ the plist used as a communication channel."
   "Transcode SRC-BLOCK element into Markua format.
 CONTENTS is nil.  INFO is a plist used as a communication
 channel."
-  (let ((attrs (list (cons :format (org-element-property :language src-block))
-                     (cons :line-numbers (when (org-element-property :number-lines src-block) "true"))))
-        (block-value (org-element-property :value src-block)))
+  (let* ((noweb-ref (org-markua-get-header-arg :noweb-ref src-block))
+         (attrs (list (cons :format (org-element-property :language src-block))
+                      (cons :line-numbers (when (org-element-property :number-lines src-block) "true"))
+                      (cons :caption (when noweb-ref (format "*«%s»=*" noweb-ref)))))
+         (block-value (org-element-property :value src-block)))
+;;    (message "SRC block: %s" src-block)
     (concat
      (org-markua-attribute-line src-block info attrs)
      (format "```\n%s%s```"
