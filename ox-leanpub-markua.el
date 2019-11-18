@@ -96,8 +96,7 @@
                      (format "%s" lpattr-str)
                    (when (> (length lpattr-str-new) 0)
                      (format "{%s}"
-                             lpattr-str-new))))
-         )
+                             lpattr-str-new)))))
     (when (> (length output) 0)
       (concat
        output
@@ -379,14 +378,12 @@ definitions at the end."
   "Transcode a PARAGRAPH element from Org to Markua.
 CONTENTS is the contents of the paragraph, as a string.  INFO is
 the plist used as a communication channel."
-  ;;(message (format "Formatting paragraph: %s" contents))
   (concat (org-markua-attribute-line paragraph info)
           (replace-regexp-in-string "{{markua:linebreak}}" "\n"
                                     (replace-regexp-in-string "\n" " " contents)
                                     nil 'literal)))
 
 (defun org-markua-get-header-arg (arg src-block)
-  ;(message "src-block=%s arg=%s parameters='%s'" src-block arg (org-element-property :parameters info))
   (alist-get arg (org-babel-parse-header-arguments (org-element-property :parameters src-block))))
 
 ;;; {lang="python"}
