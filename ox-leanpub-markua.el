@@ -77,7 +77,7 @@
   (let* ((init (list (cons :id (or (org-element-property :name elem)
                                    (org-element-property :ID elem)
                                    (org-element-property :CUSTOM_ID elem)))
-                     (cons :title (org-export-data (org-element-property :caption elem) info))))
+                     (cons :caption (org-export-data (caar (org-element-property :caption elem)) info))))
          (lpattr-str (car (org-element-property :attr_leanpub elem)))
          (lpattr (append (org-babel-parse-header-arguments lpattr-str) other-attrs init))
          (oldstyle (string-prefix-p "{" lpattr-str))
