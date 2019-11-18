@@ -61,7 +61,9 @@
                      ;; (table-cell . org-markua-table-cell)
                      ;; (table-row . org-markua-table-row)
                      ;; Will not work with leanpub:
-                     (export-block . org-markua-ignore)))
+                     (export-block . org-markua-ignore))
+  :options-alist
+  '((:ox-markua-use-noweb-ref-as-caption "OX_MARKUA_USE_NOWEB_REF_AS_CAPTION" nil nil t)))
 
 ;;; Utility functions
 
@@ -397,18 +399,20 @@ the plist used as a communication channel."
   "Transcode SRC-BLOCK element into Markua format.
 CONTENTS is nil.  INFO is a plist used as a communication
 channel."
-  (let* ((noweb-ref (org-markua-get-header-arg :noweb-ref src-block))
+  (let* ((use-noweb-ref (plist-get info :ox-markua-use-noweb-ref-as-caption))
+         (do-export (not (member (org-markua-get-header-arg :exports src-block) '("results" "none"))))
+         (noweb-ref (org-markua-get-header-arg :noweb-ref src-block))
          (attrs (list (cons :format (org-element-property :language src-block))
                       (cons :line-numbers (when (org-element-property :number-lines src-block) "true"))
-                      (cons :caption (when noweb-ref (format "*«%s»=*" noweb-ref)))))
+                      (when use-noweb-ref (cons :caption (when noweb-ref (format "«%s»≡" noweb-ref))))))
          (block-value (org-element-property :value src-block)))
-;;    (message "SRC block: %s" src-block)
-    (concat
-     (org-markua-attribute-line src-block info attrs)
-     (format "```\n%s%s```"
-             (org-remove-indentation block-value)
-             ;; Insert a newline if the block doesn't end with one
-             (if (string-suffix-p "\n" block-value) "" "\n")))))
+    (when do-export
+      (concat
+      (org-markua-attribute-line src-block info attrs)
+      (format "```\n%s%s```"
+              (org-remove-indentation block-value)
+              ;; Insert a newline if the block doesn't end with one
+              (if (string-suffix-p "\n" block-value) "" "\n"))))))
 
 ;;; > ~~~~~~~~
 ;;; > 123.0
