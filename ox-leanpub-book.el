@@ -69,7 +69,7 @@
   "Set up the Multifile export menu entries within the Leanpub Markdown menu"
   (interactive)
   (require 'ox-leanpub-markdown)
-  (org-export-define-derived-backend 'leanpub-book-markdown 'leanpub
+  (org-export-define-derived-backend 'leanpub-book-markdown 'leanpub-markdown
     :menu-entry
     '(?L 1
          ((?b "Multifile: Whole book"      (lambda (a s v b) (org-leanpub-export-book #'org-leanpub-markdown-export-to-markdown ".md" 'leanpub-book-markdown a s v b)))
@@ -84,7 +84,7 @@
   "Set up the Multifile export menu entries within the Leanpub Markua menu"
   (interactive)
   (require 'ox-leanpub-markua)
-  (org-export-define-derived-backend 'leanpub-book-markua 'markua
+  (org-export-define-derived-backend 'leanpub-book-markua 'leanpub-markua
     :menu-entry
     '(?M 1
          ((?b "Multifile: Whole book"      (lambda (a s v b) (org-leanpub-export-book #'org-leanpub-markua-export-to-markua ".markua" 'leanpub-book-markua a s v b)))

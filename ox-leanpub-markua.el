@@ -31,7 +31,7 @@
 
 ;;; Define Back-End
 
-(org-export-define-derived-backend 'markua 'leanpub
+(org-export-define-derived-backend 'leanpub-markua 'md
   :menu-entry
   '(?M "Export to Leanpub Markua"
        ((?M "To temporary buffer"
@@ -523,7 +523,7 @@ Export is done in a buffer named \"*Org MD Export*\", which will
 be displayed when `org-export-show-temporary-export-buffer' is
 non-nil."
   (interactive)
-  (org-export-to-buffer 'markua "*Org MARKUA Export*"
+  (org-export-to-buffer 'leanpub-markua "*Org MARKUA Export*"
     async subtreep visible-only nil nil (lambda () (text-mode))))
 
 ;;;###autoload
@@ -549,7 +549,7 @@ contents of hidden elements.
 Return output file's name."
   (interactive)
   (let ((outfile (org-export-output-file-name ".markua" subtreep)))
-    (org-export-to-file 'markua outfile async subtreep visible-only)))
+    (org-export-to-file 'leanpub-markua outfile async subtreep visible-only)))
 
 ;;;###autoload
 (defun org-markua-publish-to-leanpub (plist filename pub-dir)
@@ -560,7 +560,7 @@ is the property list for the given project.  PUB-DIR is the
 publishing directory.
 
 Return output file name."
-  (org-publish-org-to 'markua filename ".markua" plist pub-dir))
+  (org-publish-org-to 'leanpub-markua filename ".markua" plist pub-dir))
 
 (provide 'ox-leanpub-markua)
 

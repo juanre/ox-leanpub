@@ -31,7 +31,7 @@
 
 ;;; Define Back-End
 
-(org-export-define-derived-backend 'leanpub 'md
+(org-export-define-derived-backend 'leanpub-markdown 'md
 ;;  :export-block '("leanpub" "LEANPUB")
   :menu-entry
   '(?L "Export to Leanpub Markdown"
@@ -351,7 +351,7 @@ Export is done in a buffer named \"*Org MD Export*\", which will
 be displayed when `org-export-show-temporary-export-buffer' is
 non-nil."
   (interactive)
-  (org-export-to-buffer 'leanpub "*Org LEANPUB Export*"
+  (org-export-to-buffer 'leanpub-markdown "*Org LEANPUB Export*"
     async subtreep visible-only nil nil (lambda () (text-mode))))
 
 ;;;###autoload
@@ -377,7 +377,7 @@ contents of hidden elements.
 Return output file's name."
   (interactive)
   (let ((outfile (org-export-output-file-name ".md" subtreep)))
-    (org-export-to-file 'leanpub outfile async subtreep visible-only)))
+    (org-export-to-file 'leanpub-markdown outfile async subtreep visible-only)))
 
 ;;;###autoload
 (defun org-leanpub-publish-to-leanpub (plist filename pub-dir)
@@ -388,7 +388,7 @@ is the property list for the given project.  PUB-DIR is the
 publishing directory.
 
 Return output file name."
-  (org-publish-org-to 'leanpub filename ".md" plist pub-dir))
+  (org-publish-org-to 'leanpub-markdown filename ".md" plist pub-dir))
 
 (provide 'ox-leanpub-markdown)
 
